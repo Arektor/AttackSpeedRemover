@@ -16,6 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Main extends JavaPlugin implements Listener {
 	
 	public FileConfiguration config;
+	//16 would be enough, but we set it to 64 in case of some plugins would use custom attack speed values.
 	public AttributeModifier modifier = new AttributeModifier("AttackSpeedRemover", 64.0D, Operation.ADD_NUMBER);
 	
 	@Override
@@ -38,18 +39,13 @@ public class Main extends JavaPlugin implements Listener {
 	}
 	
 	public boolean checkCondition(World world) {
-		//getLogger().info("Checking condition for world "+world.getName());
 		if (config.getInt("whitelist_type") == 0) {
-			//getLogger().info("Whitelist type 0");
 			if (config.getStringList("whitelist").contains(world.getName())) {
-				//getLogger().info("Whitelist contains the world");
 				return false;
 			}
 			else return true;
 		} else {
-			//getLogger().info("Whitelist type 1");
 			if (config.getStringList("whitelist").contains(world.getName())) {
-				//getLogger().info("Whitelist contains the world");
 				return true;
 			}
 			else return false;
