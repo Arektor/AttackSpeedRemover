@@ -10,6 +10,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.attribute.AttributeModifier.Operation;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -23,7 +24,6 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public FileConfiguration config;
 	//16 would be enough, but we set it to 64 to prevent any issue with plugins using custom attack speed
-	public AttributeModifier modifier = new AttributeModifier("AttackSpeedRemover", 64.0D, Operation.ADD_NUMBER);
 	
 	@Override
 	public void onEnable() {
@@ -35,12 +35,14 @@ public class Main extends JavaPlugin implements Listener {
 	}
 	
 	public Attributable removeAttackSpeed(Attributable att) {
-		att.getAttribute(Attribute.GENERIC_ATTACK_SPEED).addModifier(modifier);
+		att.getAttribute(Attribute.GENERIC_ATTACK_SPEED).addModifier(new AttributeModifier("AttackSpeedRemover", 64.0D, Operation.ADD_NUMBER));
 		return att;
 	}
 	
 	public Attributable resetAttackSpeed(Attributable att) {
-		att.getAttribute(Attribute.GENERIC_ATTACK_SPEED).removeModifier(modifier);
+		AttributeInstance instance = att.getAttribute(Attribute.GENERIC_ATTACK_SPEED);
+		for (AttributeModifier modifier : new ArrayList<AttributeModifier>(instance.getModifiers()))
+			if (modifier.getName().equalsIgnoreCase("AttackSpeedRemover")) instance.removeModifier(modifier);
 		return att;
 	}
 	
@@ -97,9 +99,7 @@ public class Main extends JavaPlugin implements Listener {
 			} else if (type.contains("IRON")) {
 				att = this.setAttackDamage(att, 1);
 			}
-		} else {
-			att = this.setAttackDamage(att, 1);
-		}
+		} else att = this.setAttackDamage(att, 1);
 		return att;
 	}
 	
@@ -108,7 +108,8 @@ public class Main extends JavaPlugin implements Listener {
 		instance.setBaseValue(newAtkDmg);
 		
 		for (AttributeModifier modifier : new ArrayList<AttributeModifier>(instance.getModifiers()))
-			if (!modifier.getName().contains("potion")) instance.removeModifier(modifier);
+			if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool")))
+				instance.removeModifier(modifier);
 		
 		return att;
 	}
@@ -131,30 +132,40 @@ public class Main extends JavaPlugin implements Listener {
 	
 	@EventHandler
 	public void onlogin(PlayerLoginEvent evt) {
-		if (!checkCondition(evt.getPlayer().getWorld())) return;
-		if (!checkCondition(evt.getPlayer())) return;
+		if (!checkCondition(evt.getPlayer().getWorld())) {
+			resetAttackSpeed(evt.getPlayer());
+			return;
+		}
+		if (!checkCondition(evt.getPlayer())) {
+			resetAttackSpeed(evt.getPlayer());
+			return;
+		}
 		this.removeAttackSpeed(evt.getPlayer());
 	}
 	
 	@EventHandler
 	public void onswitch(PlayerChangedWorldEvent evt) {
 		if (!checkCondition(evt.getPlayer().getWorld())) {
-			this.resetAttackSpeed(evt.getPlayer());
+			resetAttackSpeed(evt.getPlayer());
 			return;
 		}
-		if (!checkCondition(evt.getPlayer())) return;
-		this.removeAttackSpeed(evt.getPlayer());
+		if (!checkCondition(evt.getPlayer())) {
+			resetAttackSpeed(evt.getPlayer());
+			return;
+		}
+		removeAttackSpeed(evt.getPlayer());
 	}
 	
 	@EventHandler
-	public void itemHeld(final PlayerItemHeldEvent evt) {
+	public void itemHeld(PlayerItemHeldEvent evt) {
 		if (!checkCondition(evt.getPlayer())) return;
 		if (!checkCondition(evt.getPlayer().getWorld())) return;
+		final Player p = evt.getPlayer();
 		new BukkitRunnable() { 
 			
 			@Override
 			public void run() {
-				restoreOldDamage(evt.getPlayer(), evt.getPlayer().getInventory().getItemInMainHand());
+				restoreOldDamage(p, p.getInventory().getItemInMainHand());
 			}
 			
 		}.runTaskLaterAsynchronously(this, 2L);
