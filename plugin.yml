@@ -1,0 +1,5 @@
+name: AttackSpeedRemover
+main: fr.tenebrae.AttackSpeedRemover.Main
+authors: [Arektor]
+version: 1.0
+description: AttackSpeed remover

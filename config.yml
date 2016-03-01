@@ -1,0 +1,12 @@
+#How does work the whitelist? Is this a list of disallowed worlds, or allowed ones?
+#0 for a list of disallowed, 1 for a list of allowed.
+whitelist_type: 0
+
+#A list of the worlds to put in the whitelist
+whitelist:
+- world
+- world_nether
+
+#Do players need a permission to bypass attack speed?
+#Note: the permission is attackspeed.bypass
+enable_permission: false
