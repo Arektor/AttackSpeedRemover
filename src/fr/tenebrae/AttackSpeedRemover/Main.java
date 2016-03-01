@@ -29,7 +29,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	
 	public FileConfiguration config;
-	//16 would be enough, but we set it to 64 to prevent any issue with plugins using custom attack speed
 	
 	@Override
 	public void onEnable() {
