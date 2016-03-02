@@ -1,3 +1,10 @@
+#The amount of the basic attack speed
+#64 is the plugin's default value
+#16 is the minimum value for no attack cooldown
+#4 is the default 1.9 value
+#If you set it to 0, the plugin will consider that it's 64
+attackSpeed: 64
+
 #How does work the whitelist? Is this a list of disallowed worlds, or allowed ones?
 #0 for a list of disallowed, 1 for a list of allowed.
 whitelist_type: 0

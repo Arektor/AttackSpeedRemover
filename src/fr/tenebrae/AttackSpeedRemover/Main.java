@@ -2,42 +2,47 @@ package fr.tenebrae.AttackSpeedRemover;
 
 import java.util.ArrayList;
 
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.attribute.AttributeModifier.Operation;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
-public class Main extends JavaPlugin implements Listener, CommandExecutor {
+import fr.tenebrae.AttackSpeedRemover.commands.Asr;
+import fr.tenebrae.AttackSpeedRemover.listeners.Login;
+import fr.tenebrae.AttackSpeedRemover.listeners.Logout;
+import fr.tenebrae.AttackSpeedRemover.listeners.SwitchHeldItem;
+import fr.tenebrae.AttackSpeedRemover.listeners.WorldSwitch;
+
+public class Main extends JavaPlugin {
 	
 	public FileConfiguration config;
 	
 	@Override
 	public void onEnable() {
-		this.getServer().getPluginManager().registerEvents(this, this);
+		
+		// Event registration
+		this.getServer().getPluginManager().registerEvents(new Login(this), this);
+		this.getServer().getPluginManager().registerEvents(new Logout(this), this);
+		this.getServer().getPluginManager().registerEvents(new SwitchHeldItem(this), this);
+		this.getServer().getPluginManager().registerEvents(new WorldSwitch(this), this);
+		
+		// Config setup
 		this.config = getConfig().options().copyDefaults(true).copyHeader(true).configuration();
 		this.saveDefaultConfig();
-		getCommand("asr").setExecutor(this);
+		
+		// Command registration
+		getCommand("asr").setExecutor(new Asr(this));
 	}
 	
+	
+	// UTILS - Start ----------------------------------------------------------------------
 	public Attributable removeAttackSpeed(Attributable att) {
 		att.getAttribute(Attribute.GENERIC_ATTACK_SPEED).addModifier(new AttributeModifier("AttackSpeedRemover", (config.getDouble("attackSpeed") == 0 ? 64 : config.getDouble("attackSpeed")), Operation.ADD_NUMBER));
 		return att;
@@ -146,69 +151,5 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		this.removeAttackSpeed(e);
 		return e;
 	}
-	
-	@EventHandler
-	public void onlogin(PlayerLoginEvent evt) {
-		this.updateAttackSpeed(evt.getPlayer());
-	}
-	
-	@EventHandler
-	public void onlogout(PlayerQuitEvent evt) {
-		this.resetAttackSpeed(evt.getPlayer());
-	}
-	
-	@EventHandler
-	public void onswitch(PlayerChangedWorldEvent evt) {
-		this.updateAttackSpeed(evt.getPlayer());
-	}
-	
-	@EventHandler
-	public void itemHeld(PlayerItemHeldEvent evt) {
-		if (!checkCondition(evt.getPlayer())) return;
-		if (!checkCondition(evt.getPlayer().getWorld())) return;
-		final Player p = evt.getPlayer();
-		new BukkitRunnable() { 
-			
-			@Override
-			public void run() {
-				restoreOldDamage(p, p.getInventory().getItemInMainHand());
-			}
-			
-		}.runTaskLaterAsynchronously(this, 2L);
-		// Delaying the task with 2 ticks to avoid getting the old held item.
-		// Running it asynchronously to avoid general server lags with weird people keeping switching held item.
-	}
-	
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (!(sender instanceof Player)) {
-			sender.sendMessage("Only players can use this command");
-			return true;
-		}
-		if (args.length == 0) {
-			sender.sendMessage("§9* §3Available commands:");
-			sender.sendMessage("    §7- §9/asr reload");
-			return true;
-		}
-		if (args.length >= 1) {
-			if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("attackspeed.reload")) {
-				try {
-					this.reloadConfig();
-					this.config = this.getConfig();
-					for (Player p : Bukkit.getOnlinePlayers()) this.updateAttackSpeed(p);
-				} catch (Exception e) {
-					sender.sendMessage("§4* §cEww, an error occured while reloading configuration! ✖");
-					e.printStackTrace();
-					return true;
-				}
-				sender.sendMessage("§2* §aConfiguration reloaded! ✔");
-				return true;
-			} else {
-				sender.sendMessage("§9* §3Available commands:");
-				sender.sendMessage("    §7- §9/asr reload");
-				return true;
-			}
-		}
-		return false;
-	}
+	// UTILS - End ----------------------------------------------------------------------
 }
