@@ -17,3 +17,10 @@ whitelist:
 #Do players need a permission to bypass attack speed?
 #Note: the permission is attackspeed.bypass
 enable_permission: false
+
+#Which modules do you want to enable?
+#The AttackSpeedRemover module also restore old tools attack damage.
+enabled_modules:
+  attackSpeedRemover: true
+  sweepAttackRemover: true
+  playerCollisionRemover: true

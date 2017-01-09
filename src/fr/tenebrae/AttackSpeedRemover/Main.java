@@ -19,25 +19,39 @@ import org.bukkit.plugin.java.JavaPlugin;
 import fr.tenebrae.AttackSpeedRemover.commands.Asr;
 import fr.tenebrae.AttackSpeedRemover.listeners.Login;
 import fr.tenebrae.AttackSpeedRemover.listeners.Logout;
+import fr.tenebrae.AttackSpeedRemover.listeners.PusherLogin;
+import fr.tenebrae.AttackSpeedRemover.listeners.PusherLogout;
+import fr.tenebrae.AttackSpeedRemover.listeners.SweepAttack;
 import fr.tenebrae.AttackSpeedRemover.listeners.SwitchHeldItem;
 import fr.tenebrae.AttackSpeedRemover.listeners.WorldSwitch;
 
-public class Main extends JavaPlugin {
+public final class Main extends JavaPlugin {
 	
+	public static String nmsver;
 	public FileConfiguration config;
 	
 	@Override
-	public void onEnable() {
-		
-		// Event registration
-		this.getServer().getPluginManager().registerEvents(new Login(this), this);
-		this.getServer().getPluginManager().registerEvents(new Logout(this), this);
-		this.getServer().getPluginManager().registerEvents(new SwitchHeldItem(this), this);
-		this.getServer().getPluginManager().registerEvents(new WorldSwitch(this), this);
+	public final void onEnable() {
+		// NMS Version Detection
+		nmsver = Bukkit.getServer().getClass().getPackage().getName();
+		nmsver = nmsver.substring(nmsver.lastIndexOf(".") + 1);
 		
 		// Config setup
 		this.config = getConfig().options().copyDefaults(true).copyHeader(true).configuration();
 		this.saveDefaultConfig();
+		
+		// Event registration
+		if (this.config.getBoolean("enabled_modules.attackSpeedRemover")) {
+			this.getServer().getPluginManager().registerEvents(new Login(this), this);
+			this.getServer().getPluginManager().registerEvents(new Logout(this), this);
+			this.getServer().getPluginManager().registerEvents(new SwitchHeldItem(this), this);
+			this.getServer().getPluginManager().registerEvents(new WorldSwitch(this), this);
+		}
+		if (this.config.getBoolean("enabled_modules.playerCollisionRemover")) {
+			this.getServer().getPluginManager().registerEvents(new PusherLogin(this), this);
+			this.getServer().getPluginManager().registerEvents(new PusherLogout(), this);
+		}
+		if (this.config.getBoolean("enabled_modules.sweepAttackRemover")) this.getServer().getPluginManager().registerEvents(new SweepAttack(this), this);
 		
 		// Command registration
 		getCommand("asr").setExecutor(new Asr(this));
@@ -48,87 +62,85 @@ public class Main extends JavaPlugin {
 	
 	
 	// UTILS - Start ----------------------------------------------------------------------
-	public Attributable removeAttackSpeed(Attributable att) {
+	public final void removeAttackSpeed(final Attributable att) {
 		att.getAttribute(Attribute.GENERIC_ATTACK_SPEED).addModifier(new AttributeModifier("AttackSpeedRemover", (config.getDouble("attackSpeed") == 0 ? 64 : config.getDouble("attackSpeed")), Operation.ADD_NUMBER));
-		return att;
 	}
 	
-	public Attributable resetAttackSpeed(Attributable att) {
-		AttributeInstance instance = att.getAttribute(Attribute.GENERIC_ATTACK_SPEED);
-		for (AttributeModifier modifier : new ArrayList<AttributeModifier>(instance.getModifiers()))
-			if (modifier.getName().equalsIgnoreCase("AttackSpeedRemover")) instance.removeModifier(modifier);
-		return att;
+	public final void resetAttackSpeed(final Attributable att) {
+		final AttributeInstance instance = att.getAttribute(Attribute.GENERIC_ATTACK_SPEED);
+		for (AttributeModifier modifier : new ArrayList<AttributeModifier>(instance.getModifiers())) if (modifier.getName().equalsIgnoreCase("AttackSpeedRemover")) instance.removeModifier(modifier);
 	}
 	
-	public Attributable restoreOldDamage(Attributable att, ItemStack item) {
-		String type = "Hand";
+	public final void restoreOldDamage(final Attributable att, final ItemStack item) {
+		final String type;
 		if (item != null) type = item.getType().toString();
+		else type = "Hand";
+		
 		if (type.contains("AXE")) {
 			if (type.contains("DIAMOND")) {
-				att = this.setAttackDamage(att, 6);
+				this.setAttackDamage(att, 6);
 			} else if (type.contains("GOLD") || type.contains("WOOD")) {
-				att = this.setAttackDamage(att, 3);
+				this.setAttackDamage(att, 3);
 			} else if (type.contains("STONE")) {
-				att = this.setAttackDamage(att, 4);
+				this.setAttackDamage(att, 4);
 			} else if (type.contains("IRON")) {
-				att = this.setAttackDamage(att, 5);
+				this.setAttackDamage(att, 5);
 			}
 		} else if (type.contains("SWORD")) {
 			if (type.contains("DIAMOND")) {
-				att = this.setAttackDamage(att, 7);
+				this.setAttackDamage(att, 7);
 			} else if (type.contains("GOLD") || type.contains("WOOD")) {
-				att = this.setAttackDamage(att, 4);
+				this.setAttackDamage(att, 4);
 			} else if (type.contains("STONE")) {
-				att = this.setAttackDamage(att, 5);
+				this.setAttackDamage(att, 5);
 			} else if (type.contains("IRON")) {
-				att = this.setAttackDamage(att, 6);
+				this.setAttackDamage(att, 6);
 			}
 		} else if (type.contains("SPADE")) {
 			if (type.contains("DIAMOND")) {
-				att = this.setAttackDamage(att, 4);
+				this.setAttackDamage(att, 4);
 			} else if (type.contains("GOLD") || type.contains("WOOD")) {
-				att = this.setAttackDamage(att, 1);
+				this.setAttackDamage(att, 1);
 			} else if (type.contains("STONE")) {
-				att = this.setAttackDamage(att, 2);
+				this.setAttackDamage(att, 2);
 			} else if (type.contains("IRON")) {
-				att = this.setAttackDamage(att, 3);
+				this.setAttackDamage(att, 3);
 			}
 		} else if (type.contains("PICKAXE")) {
 			if (type.contains("DIAMOND")) {
-				att = this.setAttackDamage(att, 5);
+				this.setAttackDamage(att, 5);
 			} else if (type.contains("GOLD") || type.contains("WOOD")) {
-				att = this.setAttackDamage(att, 2);
+				this.setAttackDamage(att, 2);
 			} else if (type.contains("STONE")) {
-				att = this.setAttackDamage(att, 3);
+				this.setAttackDamage(att, 3);
 			} else if (type.contains("IRON")) {
-				att = this.setAttackDamage(att, 4);
+				this.setAttackDamage(att, 4);
 			}
 		} else if (type.contains("HOE")) {
 			if (type.contains("DIAMOND")) {
-				att = this.setAttackDamage(att, 1);
+				this.setAttackDamage(att, 1);
 			} else if (type.contains("GOLD") || type.contains("WOOD")) {
-				att = this.setAttackDamage(att, 1);
+				this.setAttackDamage(att, 1);
 			} else if (type.contains("STONE")) {
-				att = this.setAttackDamage(att, 1);
+				this.setAttackDamage(att, 1);
 			} else if (type.contains("IRON")) {
-				att = this.setAttackDamage(att, 1);
+				this.setAttackDamage(att, 1);
 			}
-		} else att = this.setAttackDamage(att, 1);
-		return att;
+		} else this.setAttackDamage(att, 1);
 	}
 	
-	public Attributable setAttackDamage(Attributable att, double newAtkDmg) {
-		AttributeInstance instance = att.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
-		instance.setBaseValue(newAtkDmg);
+	public final void setAttackDamage(final Attributable att, final double newAtkDmg) {
+		final AttributeInstance instance = att.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
 		
-		for (AttributeModifier modifier : new ArrayList<AttributeModifier>(instance.getModifiers()))
-			if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool")))
+		for (AttributeModifier modifier : new ArrayList<AttributeModifier>(instance.getModifiers())) {
+			if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool"))) {
 				instance.removeModifier(modifier);
-		
-		return att;
+				instance.addModifier(new AttributeModifier(modifier.getName(), newAtkDmg, modifier.getOperation()));
+			}
+		}
 	}
 	
-	public boolean checkCondition(World world) {
+	public final boolean checkCondition(final World world) {
 		if (config.getInt("whitelist_type") == 0) {
 			if (config.getStringList("whitelist").contains(world.getName())) return false;
 			else return true;
@@ -138,13 +150,13 @@ public class Main extends JavaPlugin {
 		}
 	}
 	
-	public boolean checkCondition(Entity p) {
+	public final boolean checkCondition(final Entity p) {
 		if (!config.getBoolean("enable_permission")) return true;
 		if (p.hasPermission("attackspeed.bypass")) return true;
 		else return false;
 	}
 	
-	public Entity updateAttackSpeed(LivingEntity e) {
+	public final Entity updateAttackSpeed(final LivingEntity e) {
 		if (!checkCondition(e.getWorld())) {
 			resetAttackSpeed(e);
 			return e;
