@@ -14,7 +14,10 @@ public final class PusherLogout implements Listener {
 	public final void onQuit(final PlayerQuitEvent evt) {
 		final Player p = evt.getPlayer();
 		final Scoreboard board = p.getScoreboard();
-		if (board.getTeams().contains("PusherModule."+p.getName())) board.getTeam("PusherModule."+p.getName()).unregister();
-		else board.getEntryTeam(p.getName()).setOption(Option.COLLISION_RULE, OptionStatus.ALWAYS);
+		final String s = "PM."+p.getName();
+		try {
+			if (board.getTeam(s.length() > 16 ? s.substring(0, 16) : s) != null) board.getTeam(s.length() > 16 ? s.substring(0, 16) : s).unregister();
+			else board.getEntryTeam(p.getName()).setOption(Option.COLLISION_RULE, OptionStatus.ALWAYS);
+		} catch (NullPointerException npe) {}
 	}
 }

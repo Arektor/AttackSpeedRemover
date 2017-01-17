@@ -23,8 +23,8 @@ public final class SweepAttack implements Listener {
 	public final void onEntityDamaged(final EntityDamageByEntityEvent evt) {
 		if (!plugin.checkCondition(evt.getDamager().getWorld())) return;
 		if (!(evt.getDamager() instanceof Player)) return;
-		if (Main.nmsver.contains("1_11")) if (evt.getCause() == DamageCause.ENTITY_SWEEP_ATTACK) evt.setCancelled(true);
-		else {
+		try { if (evt.getCause() == DamageCause.ENTITY_SWEEP_ATTACK) evt.setCancelled(true); }
+		catch (NoSuchFieldError e) {
 			final Player p = (Player)evt.getDamager();
 			if (!p.getInventory().getItemInMainHand().getType().name().contains("SWORD")) return;
 			final Location loc = p.getLocation();

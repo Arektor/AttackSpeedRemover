@@ -24,11 +24,12 @@ public final class PusherLogin implements Listener {
 			public void run() {
 				final Player p = evt.getPlayer();
 				final Scoreboard board = p.getScoreboard();
-				if (board.getTeams().contains(board.getEntryTeam(p.getName()))) board.getEntryTeam(p.getName()).setOption(Option.COLLISION_RULE, OptionStatus.NEVER);
+				if (board.getTeams().contains(board.getEntryTeam(p.getName()))) board.getEntryTeam(p.getName()).setOption(Option.COLLISION_RULE, OptionStatus.FOR_OWN_TEAM);
 				else {
-					final Team t = board.registerNewTeam("PusherModule."+p.getName());
+					final String s = "PM."+p.getName();
+					final Team t = board.registerNewTeam(s.length() > 16 ? s.substring(0, 16) : s);
 					t.addEntry(p.getName());
-					t.setOption(Option.COLLISION_RULE, OptionStatus.NEVER);
+					t.setOption(Option.COLLISION_RULE, OptionStatus.FOR_OWN_TEAM);
 				}
 			}
 		}.runTaskLater(plugin, 3L);

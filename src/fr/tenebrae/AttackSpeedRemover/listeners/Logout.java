@@ -6,7 +6,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import fr.tenebrae.AttackSpeedRemover.Main;
 
-public class Logout implements Listener {
+public final class Logout implements Listener {
 
 	private Main plugin;
 	
@@ -15,7 +15,8 @@ public class Logout implements Listener {
 	}
 	
 	@EventHandler
-	public void onlogout(PlayerQuitEvent evt) {
+	public final void onlogout(final PlayerQuitEvent evt) {
 		plugin.resetAttackSpeed(evt.getPlayer());
+		plugin.resetDamage(evt.getPlayer());
 	}
 }
