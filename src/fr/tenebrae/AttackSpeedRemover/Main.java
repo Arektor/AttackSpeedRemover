@@ -134,31 +134,62 @@ public final class Main extends JavaPlugin {
 
 	public final void setAttackDamage(final Material m, final Attributable att, final double newAtkDmg) {
 		final AttributeInstance instance = att.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
-
-		for (final AttributeModifier modifier : instance.getModifiers()) {
-			if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool"))) {
-				try {
-					getLogger().info("Removing it");
-					instance.removeModifier(modifier);
-				} catch (ConcurrentModificationException e) {
-					new BukkitRunnable() {
-						@Override
-						public void run() {
+		try {
+			for (final AttributeModifier modifier : instance.getModifiers()) {
+				if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool"))) {
+					try {
+						instance.removeModifier(modifier);
+					} catch (ConcurrentModificationException e) {
+						new BukkitRunnable() {
+							@Override
+							public void run() {
+								try {
+									instance.removeModifier(modifier);
+								} catch (ConcurrentModificationException e) {
+									new BukkitRunnable() {
+										@Override
+										public void run() {
+											instance.removeModifier(modifier);
+										}
+									}.runTaskLater(Main.this, 1L);
+								}
+							}
+						}.runTaskLater(Main.this, 1L);
+					}
+				}
+			}
+		} catch (ConcurrentModificationException ex) {
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					for (final AttributeModifier modifier : instance.getModifiers()) {
+						if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool"))) {
 							try {
 								instance.removeModifier(modifier);
 							} catch (ConcurrentModificationException e) {
 								new BukkitRunnable() {
 									@Override
 									public void run() {
-										instance.removeModifier(modifier);
+										try {
+											instance.removeModifier(modifier);
+										} catch (ConcurrentModificationException e) {
+											new BukkitRunnable() {
+												@Override
+												public void run() {
+													instance.removeModifier(modifier);
+												}
+											}.runTaskLater(Main.this, 1L);
+										}
 									}
 								}.runTaskLater(Main.this, 1L);
 							}
 						}
-					}.runTaskLater(Main.this, 1L);
+					}
 				}
-			}
+			}.runTaskLater(this, 1L);
+			return;
 		}
+		
 		try {
 			instance.addModifier(new AttributeModifier(getModifierForTool(m), newAtkDmg, Operation.ADD_NUMBER));
 		} catch (ConcurrentModificationException e) {
@@ -182,28 +213,60 @@ public final class Main extends JavaPlugin {
 
 	public final void resetDamage(final Attributable att) {
 		final AttributeInstance instance = att.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
-		for (final AttributeModifier modifier : instance.getModifiers()) {
-			if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool"))) {
-				try {
-					instance.removeModifier(modifier);
-				} catch (ConcurrentModificationException e) {
-					new BukkitRunnable() {
-						@Override
-						public void run() {
+		try {
+			for (final AttributeModifier modifier : instance.getModifiers()) {
+				if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool"))) {
+					try {
+						instance.removeModifier(modifier);
+					} catch (ConcurrentModificationException e) {
+						new BukkitRunnable() {
+							@Override
+							public void run() {
+								try {
+									instance.removeModifier(modifier);
+								} catch (ConcurrentModificationException e) {
+									new BukkitRunnable() {
+										@Override
+										public void run() {
+											instance.removeModifier(modifier);
+										}
+									}.runTaskLater(Main.this, 1L);
+								}
+							}
+						}.runTaskLater(Main.this, 1L);
+					}
+				}
+			}
+		} catch (ConcurrentModificationException ex) {
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					for (final AttributeModifier modifier : instance.getModifiers()) {
+						if ((modifier.getName().contains("Weapon") || modifier.getName().contains("Tool"))) {
 							try {
 								instance.removeModifier(modifier);
 							} catch (ConcurrentModificationException e) {
 								new BukkitRunnable() {
 									@Override
 									public void run() {
-										instance.removeModifier(modifier);
+										try {
+											instance.removeModifier(modifier);
+										} catch (ConcurrentModificationException e) {
+											new BukkitRunnable() {
+												@Override
+												public void run() {
+													instance.removeModifier(modifier);
+												}
+											}.runTaskLater(Main.this, 1L);
+										}
 									}
 								}.runTaskLater(Main.this, 1L);
 							}
 						}
-					}.runTaskLater(Main.this, 1L);
+					}
 				}
-			}
+			}.runTaskLater(this, 1L);
+			return;
 		}
 
 	}
